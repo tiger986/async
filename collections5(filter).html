@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        filter 返回满足条件的原始元素
+    </div>
+</body>
+</html>
+<script>
+    //返回的是通过测试的原始数据，只有筛选，没有修改原始数据
+
+    var arr = [{name: "one", time: 300},
+                {name: "two", time: 200},
+                {name: "three", time: 500},
+                {name: "four", time: 100}];
+
+    //1.并行执行，对arr进行筛选。
+    /*async.filter(arr, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            if(item.time > 200){
+                cb(null, true);
+            }else{
+                cb(null, false);
+            }
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //[{name: "one", time: 300}, {name: "three", time: 500}]
+    });*/
+    //log: four, two, one, three, null, [{name: "one", time: 300}, {name: "three", time: 500}]
+
+    //注：对于出错，该函数没有做出任何处理，直接由nodejs抛出。所以需要注意对Error的处理。
+
+
+    //2.串行执行
+    /*async.filterSeries(arr, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            if(item.time > 200){
+                cb(null, true);
+            }else{
+                cb(null, false);
+            }
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //[{name: "one", time: 300}, {name: "three", time: 500}]
+    });*/
+    //log: one, two, three, four, null, [{name: "one", time: 300}, {name: "three", time: 500}]
+
+
+    //3.分批执行，第二个参数是每一批的个数。每一批内并行执行，批与批之间按顺序执行。(上一批执行完成后再执行下一批)。
+    async.filterLimit(arr, 2, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            if(item.time > 200){
+                cb(null, true);
+            }else{
+                cb(null, false);
+            }
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //[{name: "one", time: 300}, {name: "three", time: 500}]
+    });
+    //log: two, one, four, three, null, [{name: "one", time: 300}, {name: "three", time: 500}]
+
+</script>

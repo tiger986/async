@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        autoInject(tasks, callbackopt) (与auto类似但回调函数被作为参数传入下一个串行函数)
+    </div>
+</body>
+</html>
+<script>
+    //1.根据依赖项来计算依赖关系，依赖关系以回调函数参数的形式来进行表示
+    async.autoInject({
+        one: function(cb){
+            cb(null, 1);
+        },
+        two: function(cb){
+            cb(null, 2);
+        },
+        three: function(one, two, cb){ //这种注入方式必须要将参数的名称写正确了，参数的名称需要和函数的名称保持一致(既是依赖又是参数)
+            var n = one + two;
+            cb(null, n);
+        },
+        four: function(three, cb){
+            var m = three + 1;
+            cb(null, m)
+        }
+    }, function(err, results){
+        console.log(results); //{one: 1, two: 2, three: 3, four: 4}
+    });
+
+    //2.以参数的形式来计算依赖关系的另外一种表现形式
+    async.autoInject({
+        one: function(cb){
+            cb(null, 1, 10);
+        },
+        two: function(cb){
+            cb(null, {a: 2, b: 20});
+        },
+        three: ["one", "two", function(x, y, cb){ //回调函数的参数就不再是依赖项了，数组前面的是依赖的函数，回调函数参数是前面依赖函数的结果
+            var n = x[1] + y.b;
+            cb(null, n);
+        }],
+        four: ["three", function(k, cb){
+            var m = k + 10;
+            cb(null, m)
+        }]
+    }, function(err, results){
+        console.log(results); //{one: [1, 10], two: {a: 2, b: 20}, three: 30, four: 40}
+    });
+
+</script>

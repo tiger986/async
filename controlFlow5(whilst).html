@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        whilst(test, fn, callback)（用可于异步调用的while）
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    //相当于while，但其中的异步调用将在完成后才会进行下一次循环
+    //该函数的功能比较简单，条件变量通常定义在外面，可供每个函数访问。在循环中，异步调用时产生的值实际上被丢弃了，因为最后那个callback只能传入错误信息。
+    //第二个函数fn需要能接受一个函数cb，这个cb最终必须被执行，用于表示出错或正常结束。
+
+    //1.当第一个函数返回的为true时（循环条件），执行第二个函数（循环体）
+    /*var n = 0;
+    async.whilst(
+        function(){
+            return n < 5;
+        },
+        function(callback){//此函数执行完后才进入下一次循环（与whilehe for循环的区别）
+            console.log(n);
+            n++;
+            setTimeout(function(){
+                callback(null, n);
+            }, 1000);
+        },
+        function(err, res){
+            console.log(err);//null
+            console.log(res);//5 (如果没有遇到错误，res为最后一次循环中callback传回来的值)
+        }
+    );*/
+
+
+    //2.中途出错。出错后立刻调用第三个函数(结束或者err时进入),并退出循环
+    /*var m = 0;
+    async.whilst(
+        function(){
+            return m < 5;
+        },
+        function(callback){
+            console.log(m);
+            m++;
+            setTimeout(function(){
+                if(m == 3){
+                    callback("err");
+                }else{
+                    callback();
+                }
+            }, 1000);
+        },
+        function(err){
+            console.log(err);//err
+        }
+    );*/
+
+
+    //3.在循环中，如果遇到错误，异步调用时产生的值实际上被丢弃了，因为最后那个callback只能传入错误信息。
+    /*var i = 0;
+    async.whilst(
+        function(){
+            return i < 5;
+        },
+        function(callback){
+            console.log(i);
+            i++;
+            setTimeout(function(){
+                if(i == 3){
+                    callback("err");
+                }else{
+                    callback(null, i);
+                }
+            }, 1000);
+        },
+        function(err, results){
+            console.log(err);//err
+            console.log(results);//undefined (第二个函数即使产生值，也会被忽略。第三个函数只能得到err。)
+        }
+    );*/
+
+
+    //4.whilst的好处
+    /*var j = 0;
+    var k = 0;
+    while(j < 5){
+        while(k < 5){
+            setTimeout(function(){
+                console.log(j);//打印了25次5
+            },300);
+            k++;
+        }
+        j++;
+        k = 0;
+    }*/
+    /*上面代码内层的一次循环相当于一次io操作（注意：IO操作的特点是异步的，如果是纯粹的逻辑运算，就用while就可以实现），
+    我们要实现的目标是外循环循环一次，里边循环5次，而上面的代码没有实现此目标*/
+
+    //这个时候就需要async.whilst
+    var x = 0;
+    var y = 0;
+    async.whilst(
+        function(){
+            return x < 5;
+        },
+        function(cb1){
+            x++;
+            y = 0;
+            async.whilst(
+                function(){
+                    return y < 5;
+                },
+                function(cb2){
+                    y++;
+                    setTimeout(function(){
+                        console.log(x);//分别打印5次1、5次2……5次5
+                        cb2();
+                    }, 300);
+                },
+                function(err){
+                    console.log(err);
+                    cb1();//外层whilst的callback要放在此处调用
+                }
+            );
+        },
+        function(err){
+            console.log(err);
+        }
+    );
+
+</script>

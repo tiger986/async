@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        times(n, fn, callback) (重复调用 n 次)
+    </div>
+</body>
+</html>
+<script>
+    //1.异步执行，调用3次函数，结果被合并到数组返回
+    /*async.times(3, function(x, cb){ //fn的第一个参数等于当前调用的次序(0~设置的次数-1)
+        console.log(x); // 0、1、2
+        setTimeout(function(){
+            console.log(x * 10);
+            cb(null, x);
+        }, x % 2 * 100);
+    }, function(err, res){
+        console.log(res); //[0, 1, 2]
+    });*/
+
+    //2.同步执行，调用4次函数，结果被合并到数组返回
+    async.timesSeries(4, function(x, cb){ //fn完全执行完成后再执行下一次
+        console.log(x);
+        setTimeout(function(){
+            console.log(x * 10);
+            cb(null, {num: x}); //传值可以为对象或数组（但如果写成cb(null, x, 100)，则res直接收x,后面的都会被忽略）
+        }, x % 2 * 100);
+    }, function(err, res){
+        console.log(res); //[{num: 0}, {num: 1}, {num: 2}, {num: 3}]
+    });
+
+    //3.timesLimit(count, limit, iteratee, callback) (与times类似，但可限制并行执行最大数量)
+
+</script>

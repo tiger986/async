@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        during(test, fn, callback ) (类似whilst，回调判断)
+    </div>
+</body>
+</html>
+<script>
+    //与whilst类似，但测试的是一个异步函数的回调（err, true or false），判断回调第二参数是否为真
+    var n = 0;
+    async.during(
+        function(cb){
+            cb(null, n < 5);
+        },
+        function(cb){
+            n++;
+            setTimeout(function(){
+                console.log(n);
+                cb(null, n);
+            }, 1000);
+        },
+        function(err, res){
+            console.log(err); //null
+            console.log(res); //undefined
+        }
+    );
+
+    //doDuring (类似doWhilst，回调判断)
+    count = 6;
+    async.doDuring(
+        function (callback) { // 先执行一次
+            count++;
+            console.log(count); //7
+            setTimeout(callback, 1000);
+        },
+        function (callback) { // 判断是否满足条件
+            return callback(null, count < 5);
+        },
+        function (err) {
+           console.log(err); //null
+        }
+    );
+
+</script>

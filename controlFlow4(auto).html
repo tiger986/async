@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        auto(tasks, [callback])（多个函数有依赖关系，有的并行执行，有的依次执行）
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    /*用来处理有依赖关系的多个任务的执行。比如某些任务之间彼此独立，可以并行执行；但某些任务依赖于其它某些任务，只能等那些任务完成后才能执行。
+    虽然我们可以使用async.parallel和async.series结合起来实现该功能，但如果任务之间关系复杂，则代码会相当复杂，以后如果想添加一个新任务，
+    也会很麻烦。这时使用async.auto，则会事半功倍。*/
+
+    //1.函数1与2可以并行执行，3需要等1和2完成，4要等3完成。
+    async.auto({
+        one: function(callback){
+            setTimeout(function(){
+                console.log(111);
+                callback(null, 111);//向callback传入111
+            }, 500);
+        },
+        two: function(callback){
+            setTimeout(function(){
+                console.log(222);
+                callback();//未向callback传值
+            }, 300);
+        },
+        three: ["one", "two", function(data, callback){//注意参数
+            setTimeout(function(){
+                console.log(333);
+                console.log(data);//{two: undefined, one: 111}
+                callback(null, 10);
+                console.log(data);//{two: undefined, one: 111, three: 10, four: 200}
+            }, 100);
+        }],
+        four: ["three", function(data, callback){
+            console.log(4444);
+            var n = data.three * 20;//可将其前面执行完的函数的数据拿过来使用(依赖关系可保证其前面已经执行完的函数有哪些)
+            callback(null, n);
+        }],
+        five: ["three", function(data, callback){
+            console.log(5555);
+            var m = data.three * 50;
+            callback(null, m);
+        }]
+    }, function(err, results){
+        console.log(results);//{two: undefined, one: 111, three: 10, four: 200}（按照函数执行的先后顺序）
+    });
+
+
+    //2.如果中途出错，则会把错误交给最终callback，并将err前的数据传入callback(包含err所在函数的数据)，后面的函数不会再执行
+    /*async.auto({
+        one: function(callback){
+            setTimeout(function(){
+                console.log(111);
+                callback(null, 111, 111111);
+            }, 500);
+        },
+        two: function(callback){
+            setTimeout(function(){
+                console.log(222);
+                callback();
+            }, 300);
+        },
+        three: ["one", "two", function(data, callback){
+            setTimeout(function(){
+                console.log(333);
+                callback("err", {a: 10, b: 20});
+            }, 100);
+        }],
+        four: ["three", function(data, callback){
+            console.log(4444);
+            var n = data.three.a * 20;
+            callback(null, n);
+            console.log(data);
+        }]
+    }, function(err, results){
+        console.log(err);//err
+        console.log(results);//{two: undefined, one: [111,111111], three: {a:10, b:20}}
+    });*/
+
+    //如果不关心错误和最终数据，可以不用写最后那个callback。
+
+</script>

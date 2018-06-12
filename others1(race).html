@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        race 任何一个首先完成或首先传递错误，主回调将立即调用
+    </div>
+</body>
+</html>
+<script>
+    //并行运行任务函数的数组，一旦任何一个完成或传递错误信息，主回调将立即调用。相当于 Promise.race()
+
+    //1.并行执行，一旦有第一个完成的任务，则触发回调并将该任务所传的结果传入res
+    /*async.race([
+        function(callback) {
+            setTimeout(function() {
+                console.log("aaa");
+                callback(null, 'one');
+            }, 200);
+        },
+        function(callback) {
+            setTimeout(function() {
+                console.log("bbb");
+                callback(null, 'two');
+            }, 100);
+        }],
+        function(err, res) {
+            console.log(err); // null
+            console.log(res); // two
+        }
+    );*/
+    //log: bbb, null, two, aaa
+
+    //2.任何任务首先传递的是错误，则触发回调并将该任务所传的结果传入res
+    async.race([
+            function(callback) {
+                setTimeout(function() {
+                    console.log("aaa");
+                    callback(null, 'one');
+                }, 200);
+            },
+            function(callback) {
+                setTimeout(function() {
+                    console.log("bbb");
+                    callback("err", 'two');
+                }, 100);
+            }],
+        function(err, res) {
+            console.log(err); // err
+            console.log(res); // two
+        }
+    );
+    //log: bbb, err, two, aaa
+
+
+
+</script>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        mapValues 用于处理对象
+    </div>
+</body>
+</html>
+<script>
+    var obj = {
+        one: {name: "aaa", time: 300},
+        two: {name: "bbb", time: 200},
+        three: {name: "ccc", time: 500},
+        four: {name: "ddd", time: 100}
+    };
+
+    //1.并行，结果按执行顺序汇总到callback里(以对象的形式,key为obj的key)
+    /*async.mapValues(obj, function(val, key, cb){
+        setTimeout(function(){
+            console.log(key);
+            console.log(val.name);
+            cb(null, val); //若cb(null, val.name)则最终的res为{four: "ddd", two: "bbb", one: "aaa", three: "ccc"}
+        }, val.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //{four:{name: "ddd", time: 100}, two:{...}, one:{...}, three:{...}}
+    });*/
+    //log: four, ddd, two, bbb, one, aaa, three, ccc, null, {four: {…}, two: {…}, one: {…}, three: {…}}
+
+    //如果出错，则立刻返回错误以及已经执行完的任务的结果,未执行完的忽略(包括err所在位置的结果也被忽略)
+    async.mapValues(obj, function(val, key, cb){
+        setTimeout(function(){
+            console.log(key);
+            console.log(val.name);
+            if(val.name == "bbb"){
+                cb("err", val);
+            }else{
+                cb(null, val); //若cb(null)则最终res为{four:undefined}
+            }
+        }, val.time);
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //{four:{name: "ddd", time: 100}}
+    });
+    //log: four, ddd, two, bbb, err, {four:{...}}, one, aaa, three, ccc
+
+
+    //2.mapValuesSeries 串行，若遇错误则立刻返回错误以及已经执行的任务的结果,未执行的不再执行，结果也忽略(err所在位置会执行完但结果会被忽略)
+
+
+    //3.mapValuesLimit 分批执行，第二个参数是每一批的个数。每一批内并行执行，批与批之间按顺序执行。(上一批执行完成后再执行下一批)。若遇错误则立刻返回错误以及已经执行完的任务的结果,未执行完的不再执行，结果也忽略(err所在位置会执行完但结果会被忽略)
+
+</script>

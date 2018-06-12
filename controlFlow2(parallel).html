@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Document</title>
+<style type="text/css">
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    .box{
+        width: 600px;
+        font-size: 18px;
+        margin: 200px auto 0;
+    }
+</style>
+<script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        async.parallel(tasks, [callback]) （多个函数并行执行）
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    //parallel(tasks, [callback]) （多个函数并行执行）
+
+    //1.并行执行多个函数，每个函数都是立即执行，不需要等待其它函数先执行
+    async.parallel([function(callback){
+        setTimeout(function(){
+            console.log("a");
+            callback(null, 1);
+        }, 300);
+    },function(callback){
+        setTimeout(function(){
+            console.log("b");
+            callback(null, 2);
+        }, 100);
+    }], function(err, results){
+        console.log(results);//[1,2]（传给最终callback的数组中的数据按照tasks中函数声明的顺序排列，而不是执行完成的顺序。）
+    });
+
+
+    //2.如果某个函数出错，则立刻将err和已经执行完的函数的结果值传给parallel最终的callback。未执行完的函数的值不会传到最终数据，但在err前申明的要占个位置。最终未执行完的函数也会执行完
+    async.parallel([function(callback){//在err前申明却未执行完的函数的值不会传到最终数据，但会占个位置，函数也会执行完
+        setTimeout(function(){
+            console.log("A");
+            callback(null, 10);
+        },1000);
+    }, function(callback){
+        console.log("B");
+        callback(null, 20);
+    }, function(callback){
+            console.log("C");
+            callback("err", 30);//此处传入了err，则立刻将err和已经执行完的函数的结果值传给parallel最终的callback,此时起callback拒绝接受传值,但未执行完的函数会继续执行完
+    }, function(callback){//在err后申明却未执行完的函数的值不会传到最终数据，也会占个位置，但函数会执行完
+        var a = 200;
+        var b = 200;
+        var D = a + b;
+        console.log(D);
+        callback(null,D);
+    }], function(err, results){
+        console.log(err);
+        console.log(results);//[empty, 20, 30]（在err前申明却未执行完的函数的值不会传到最终数据，但会占个位置）
+    });
+
+
+    //3.以json形式传入tasks,若遇err,则未执行完的函数的值不会传到最终数据，也不会占个位置。未执行完的函数，在err前申明的会继续执行完，err后的不执行
+    async.parallel({
+        a: function(callback){//err前的函数会继续执行完
+            setTimeout(function(){
+                console.log(1111);
+                callback(null, "one");
+            }, 1000);
+        },
+        b: function(callback){
+            callback(null, "two");
+        },
+        c: function(callback){
+            callback("err", "three");
+        },
+        d: function(callback){//err后的函数不会执行
+            console.log(2222);
+            callback(null, "four");
+        }
+    }, function(err, results){
+        console.log(results);//{b: "two", c: "three"}（未执行完的函数的值不会传到最终数据，也不会占个位置）
+    });
+
+
+    //4.除了第一个err之外，只需要一个接受参数就可以了，如果有多余的，那么他是以数组的形式来展示
+    async.parallel([
+        function(done){
+            fn1(done);
+        },
+        function(done){
+            fn2(done);
+        }
+    ],function(err,tx,total){
+        console.log(tx);//[[{text:"aaaa"}, 1], [{text:"bbbb"}, 2, 100]]
+        console.log(tx[0][0]);//{text: "aaaa"}
+        console.log(tx[0][1]);//1
+        console.log(tx[1][0]);//{text: "bbbb"}
+        console.log(tx[1][1]);//2
+        console.log(tx[1][2]);//100
+        console.log(total);//undefined
+    });
+
+    function fn1(cb){
+        var tx1 = {text:'aaaa'};
+        var total1 = 1;
+        return cb(null,tx1,total1);
+
+    }
+
+    function fn2(cb){
+        var tx2 = {text:"bbbb"};
+        var total2 = 2;
+        return cb(null,tx2,total2, 100);
+    }
+
+</script>

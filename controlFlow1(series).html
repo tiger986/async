@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        async.series(tasks, [callback]) （多个函数依次执行，之间没有数据交换）
+    </div>
+</body>
+</html>
+<script>
+    //series(tasks, [callback]),有多个异步函数需要依次调用，一个完成之后才能执行下一个。各函数之间没有数据的交换，仅仅需要保证其执行顺序
+
+    //1.依次执行一个函数数组中的每个函数，每一个函数执行完成之后才能执行下一个函数。
+    async.series([function(callback){
+        a(callback);
+    }, function(callback){
+        b(callback);
+    }, function(callback){
+        c(callback);
+    }
+    ]);
+
+    function a(callback){
+        setTimeout(function(){//用timeout模拟回调方法返回,
+            console.log("a 方法回调方法结束");
+            callback();
+        }, 5000);
+        console.log("a 方法结束");
+    }
+
+    function b(callback){
+        setTimeout(function(){
+            console.log("b 方法回调方法结束");
+            callback();
+        }, 3000);
+        console.log("b 方法结束");
+    }
+
+    function c(callback){
+        setTimeout(function(){
+            console.log("c 方法回调方法结束");
+            callback();
+        }, 1000);
+        console.log("c 方法结束");
+    }
+
+
+    //2.当所有的函数执行完后（没有出错），则会把每个函数#传给其回调函数的结果#合并为一个数组，传给series最后的那个callback。
+    async.series([function(callback){
+        console.log("a")
+        callback(null, 1);
+    }, function(callback){
+        console.log("b")
+        callback(null, 2);
+    }, function(callback){
+        console.log("c")
+        callback(null, 3);
+    }], function(err, results){
+        console.log(results);//[1,2,3]
+    });
+
+    //如果没有给其回调传值，则results为undefined
+    async.series([function(callback){
+        console.log("a")
+        callback();
+    }, function(callback){
+        console.log("b")
+        callback(null, 2);
+    }, function(callback){
+        console.log("c")
+        callback(null);
+    }], function(err, results){
+        console.log(results);//[undefined,2,undefined]
+    });
+
+
+    //3.如果任何一个函数向它的回调函数中传了一个error，则后面的函数都不会被执行，并且将会立刻会将该error以及已经执行了的函数的结果，传给series中最后那个callback。
+    async.series([function(callback){
+        callback(null, A(10));
+    }, function(callback){
+        callback(1, B(5, 15));//传入error
+    }, function(callback){
+        callback(null, C(2, 15));
+    }], function(err, results){
+        console.log(err);//1
+        console.log(results);//[10,20]
+    });
+
+    function A(n){
+        return n;
+    }
+    function B(x, y){
+        return x + y;
+    }
+    function C(a, b){
+        return a * b;
+    }
+
+
+    //4.还可以json的形式来提供tasks。每一个属性都会被当作函数来执行，并且结果也会以json形式传给series最后的那个callback。这种方式可读性更高一些。
+    async.series({
+        a: function(callback){
+            callback(null, 1);
+        },
+        b: function(callback){
+            callback(null, 2);
+        },
+        c: function(callback){
+            callback(null, 3);
+        }
+    }, function(err, results){
+        console.log(results);//{a:1, b:2, c:3}
+    });
+
+
+    //5.如果某个函数传的数据是undefined, null, {}, []等，它们会原样传给最终callback。
+    async.series([function(callback){
+        callback(null, "aaa");
+    }, function(callback){
+        callback(null, undefined);
+    }, function(callback){
+        callback(null, null);
+    }, function(callback){
+        callback(null, {});
+    }, function(callback){
+        callback(null, []);
+    }], function(err, results){
+        console.log(results);//["aaa", undefined, null, {…}, Array(0)]
+    });
+
+    //6.除了第一个err之外，只需要一个接受参数就可以了，如果有多余的，那么他是以数组的形式来展示
+    async.series([
+        function(done){
+            fn1(done);
+        },
+        function(done){
+            fn2(done);
+        }
+    ],function(err,tx,total){
+        console.log(tx);//[[{text:"aaaa"}, 1], [{text:"bbbb"}, 2, 100]]
+        console.log(tx[0][0]);//{text: "aaaa"}
+        console.log(tx[0][1]);//1
+        console.log(tx[1][0]);//{text: "bbbb"}
+        console.log(tx[1][1]);//2
+        console.log(tx[1][2]);//100
+        console.log(total);//undefined
+    });
+
+    function fn1(cb){
+        var tx1 = {text:'aaaa'};
+        var total1 = 1;
+        return cb(null,tx1,total1);
+
+    }
+
+    function fn2(cb){
+        var tx2 = {text:"bbbb"};
+        var total2 = 2;
+        return cb(null,tx2,total2, 100);
+    }
+
+    //注：多个series调用之间是不分先后的，因为series本身也是异步调用。
+</script>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        compose (将多个异步函数串联在一起返回一个新的函数 类似 f(g(h())))
+    </div>
+</body>
+</html>
+<script>
+    //创建一个包括一组异步函数的函数集合，每个函数会消费上一次函数的返回值。把f(),g(),h()异步函数，组合成f(g(h()))的形式
+
+    function f(n,callback){
+        console.log('f: ',n);
+        setTimeout(function () {
+            callback(null, n + 1);
+        }, 300);
+    }
+    function g(n, callback) {
+        console.log('g: ',n);
+        setTimeout(function () {
+            callback(null, n * 2);
+        }, 100);
+    }
+    function h(n, callback) {
+        console.log('h: ',n);
+        setTimeout(function () {
+            callback(null, n - 10);
+        }, 500);
+    }
+    function i(n, callback) {
+        console.log('i: ',n);
+        setTimeout(function () {
+            callback("err", n * 2);
+        }, 100);
+    }
+
+    //通过compose组合，f(g(h()))的形式，按从内到外的顺序串行执行
+    /*var fgh = async.compose(f,g,h); //按从后到前的顺序串行执行
+    fgh(4, function(err,result){
+        console.log(err); //null
+        console.log(result); //-11
+    });*/
+    //log: 4, -6, -12, null, -11
+
+    //若遇err，则触发回调，后面的将不再执行
+    var fgh = async.compose(f,i,h);
+    fgh(4, function(err,result){
+        console.log(err); //err
+        console.log(result); //-12
+    });
+    //log: 4, -6, err, -12
+
+
+
+</script>

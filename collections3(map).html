@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        map 返回集合数据执行函数的结果集合
+    </div>
+</body>
+</html>
+<script>
+    //对集合中的每一个元素，执行某个异步操作，得到结果。所有的结果将汇总到最终的callback里。与each的区别是，each只关心操作不管最后的值，而map关心的最后产生的值
+
+    var arr = [{name: "one", time: 300},
+        {name: "two", time: 200},
+        {name: "three", time: 500},
+        {name: "four", time: 100}];
+
+    //1.并行执行。同时对集合中所有元素进行操作，结果按执行函数的申明顺序汇总到最终callback里(以数组得形式)。
+    /*async.map(arr, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            cb(null, item.name);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //["one", "two", "three", "four"] 按执行函数得申明顺序
+    });*/
+    //log: four, two, one, three, null, ["one", "two", "three", "four"]
+
+    //如果出错，则立刻返回错误以及已经执行完的任务的结果，未执行完的占个空位
+    /*async.map(arr, function(item, cb){
+        setTimeout(function(){
+            if(item.name == "two"){
+                cb("err", item.name); // 若cb("err")则最终得res为[empty, undefined, empty, "four"]
+            }else{
+                cb(null, item.name);
+            }
+            console.log(item.name);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //[empty, "two", empty, "four"] 未执行完的占个空位
+    });*/
+    //log: four, err, [empty, "two", empty, "four"], two, one, three
+
+
+    //2.顺序执行，一个完了才执行下一个。结果按执行函数的申明顺序汇总到最终callback里(以数组得形式)
+    /*async.mapSeries(arr, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            cb(null, item.name);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //["one", "two", "three", "four"] 按执行函数得申明顺序
+    });*/
+    //log: one, two, three, four, null, ["one", "two", "three", "four"]
+
+    //如果出错，则立刻返回错误以及已经执行的任务的结果，未执行的忽略（不占空位）（函数也不会执行）
+    /*async.mapSeries(arr, function(item, cb){
+        setTimeout(function(){
+            if(item.name == "two"){
+                cb("err", item.name); // 若cb("err")则最终得res为["one", undefined]
+            }else{
+                cb(null, item.name);
+            }
+            console.log(item.name);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //["one", "two"] 未执行的忽略
+    });*/
+    //log: one, err, ["one", "two"], two
+
+
+    //3.分批执行，第二个参数是每一批的个数。每一批内并行执行，批与批之间按顺序执行。(上一批执行完成后再执行下一批)
+    /*async.mapLimit(arr, 2, function(item, cb){
+        setTimeout(function(){
+            console.log(item.name);
+            cb(null, item.name);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //null
+        console.log(res); //["one", "two", "three", "four"] 按执行函数得申明顺序
+    });*/
+    //log: two, one, four, three, null, ["one", "two", "three", "four"]
+
+    //如果出错，则立刻返回错误以及已经执行完的任务的结果，同一批未执行完的占个空位，下一批及后面的忽略（不占空位）（函数也不会执行）
+    async.mapLimit(arr, 2, function(item, cb){
+        setTimeout(function(){
+            if(item.name == "two"){
+                cb("err", item.name);
+            }else{
+                cb(null, item.name);
+            }
+            console.log(item.name);
+            console.log(index);
+        }, item.time);
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //[empty, "two"] 同一批未执行完的占个空位，下一批及后面的忽略（不占空位）
+    });
+    //log: err, [empty, "two"], two, one
+
+</script>

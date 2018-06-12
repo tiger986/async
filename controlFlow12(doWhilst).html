@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        doWhilst(fn, test, callback) (后验证的异步while)
+    </div>
+</body>
+</html>
+<script>
+    //先执行函数，后验证条件
+    var n = 6;
+    async.doWhilst(
+        function(cb){
+            n++;
+            setTimeout(function(){
+                console.log(n); //7
+                cb(null, n);
+            }, 1000);
+        },
+        function(){
+            return n < 5;
+        },
+        function(err, res){
+            console.log(err); //null
+            console.log(res); //7 (如果没有遇到错误，res为最后一次循环中callback传回来的值)
+        }
+    );
+
+    //2.中途出错。出错后立刻调用第三个函数(结束或者err时进入),并退出循环,如果遇到错误，异步调用时产生的值实际上被丢弃了，因为最后那个callback只能传入错误信息。
+    var i = 0;
+    /*async.doWhilst(
+        function(callback){
+            i++;
+            setTimeout(function(){
+                console.log(i);
+                if(i == 3){
+                    callback("err");
+                }else{
+                    callback(null, i);
+                }
+            }, 1000);
+        },
+        function(){
+            return i < 5;
+        },
+        function(err, results){
+            console.log(err);//err
+            console.log(results);//undefined (第1个函数即使产生值，也会被忽略。第三个函数只能得到err。)
+        }
+    );*/
+
+</script>

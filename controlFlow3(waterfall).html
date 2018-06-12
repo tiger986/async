@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        waterfall(tasks, [callback])（多个函数依次执行，且前一个的输出为后一个的输入）
+    </div>
+</body>
+</html>
+<script>
+    //按顺序依次执行多个函数。每一个函数产生的值，都将传给下一个函数。如果中途出错，后面的函数将不会被执行。错误信息以及之前产生的结果，将传给waterfall最终的callback。
+
+    //1.先执行了第一个函数，然后把第一个函数算出的m传给了第二个函数，算出第二个函数中得x，把x再传给了第三个函数，算出第三个函数中的y并传给最终的结果result。
+    var n = 10;
+    async.waterfall([function(cb){
+        console.log("aaa");
+        if(n == 0){
+            cb(new Error("a不能为0"))
+        }else{
+            var m = n * 2;
+            cb(null, m);
+        }
+    }, function(m, cb){
+        var x = m * 5;
+        cb(null, x);
+        console.log("bbb");//注意log的顺序位置
+    }, function(x, cb){
+        console.log("ccc");
+        var y = x + 50;
+        cb(null, y);
+    }], function(err, results){
+        if(err){
+            console.log(err);
+        }else{
+            console.log(results);//150
+        }
+    });
+
+
+    //2.如果遇到err,则直接执行最终的回调，其后的函数不在执行（err所在函数执行完）。
+    var n = 0;
+    async.waterfall([function(cb){
+        console.log("aaa");
+        if(n == 0){
+            cb(new Error("a不能为0"))
+        }else{
+            var m = n * 2;
+            cb(null, m);
+        }
+
+    }, function(m, cb){
+        console.log("bbb");
+        var x = m * 5;
+        cb(null, x);
+    }, function(x, cb){
+        var y = x + 50;
+        cb(null, y);
+        console.log("ccc");
+    }], function(err, results){
+        if(err){
+            console.log(err);//"a不能为0"
+            console.log(results);//undefined
+        }else{
+            console.log(results);
+        }
+    });
+
+    //3.如果遇到err,则直接执行最终的回调（也可在此处给callback传最终值），其后的函数不在执行（err所在函数执行完）。
+    var n = 0;
+    async.waterfall([function(cb){
+        if(n == 0){
+            cb(new Error("a不能为0"), n);//在此处给callback传最终值
+        }else{
+            var m = n * 2;
+            cb(null, m);
+        }
+        console.log("aaa");//注意log的顺序位置
+    }, function(m, cb){
+        console.log("bbb");
+        var x = m * 5;
+        cb(null, x);
+    }, function(x, cb){
+        console.log("ccc");
+        var y = x + 50;
+        cb(null, y);
+    }], function(err, results){
+        if(err){
+            console.log(err);//"a不能为0"
+            console.log(results);//0
+        }else{
+            console.log(results);
+        }
+    });
+
+    //注意:该函数不支持json格式的tasks。
+</script>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        iterator(tasks)（将几个函数包装为iterator）
+    </div>
+</body>
+</html>
+<script>
+    //将一组函数包装成为一个iterator，该函数通常由async在内部使用，但如果需要时，也可在我们的代码中使用它。
+
+    var iter = async.iterator([
+        function() { console.log('111') },
+        function() { console.log('222') },
+        function() { console.log('333') }
+    ]);
+
+    console.log(iter());
+    console.log(iter.next());
+
+    /*直接调用()，会执行当前函数，并返回一个由下个函数为起点的新的iterator。调用next()，不会执行当前函数，直接返回由下个函数为起点的新iterator。
+    对于同一个iterator，多次调用next()，不会影响自己。如果只剩下一个元素，调用next()会返回null。*/
+</script>

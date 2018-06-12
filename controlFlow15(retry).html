@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        retry(opts, task, callback) （按照频率重复执行多次直到成功位置）
+    </div>
+</body>
+</html>
+<script>
+    /*在返回错误之前，尝试从函数获得成功响应的次数不超过规定的次数。
+    opts是一个对象，表示重试相关参数，times字段表示重试次数，interval参数表示重试间隔，如果opts是一个整数或里面只放times，则表示times，interval默认为0*/
+
+    //1.如果任务成功，则回调可传递成功任务的结果（若次数还有剩余，则剩余的次数不会在执行）
+    var n = 0;
+    async.retry({times: 5, interval: 1000}, function(cb){
+        n++;
+        console.log(n);
+        if(n < 3){
+            cb("err", n); //当n=1、2时失败，但不是限制次数内的最后一次执行，所以err和n不会被传入回调
+        }else{
+            cb(null, n); //当n=3时成功（执行结束，把err和n传入回调）
+        }
+    }, function(err, res){
+        if(err){
+            console.log(err);
+        }
+        console.log(res); //3
+    });
+
+    //2.如果所有尝试都失败，回调可传递最终尝试的错误和结果
+    var m = 0;
+    async.retry({times: 5, interval: 1000}, function(cb){
+        m++;
+        console.log(m);
+        if(m < 10){
+            cb("err", m); //5次执行都是在m<6的条件下执行，即结果为失败，并将最后一次执行后的err和m传入回调
+        }else{
+            cb(null, m);
+        }
+    }, function(err, res){
+        if(err){
+            console.log(err); //err
+        }
+        console.log(res); //5
+    });
+
+</script>

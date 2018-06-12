@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        timeout (限制异步函数的最长延迟，时间过了返回错误)
+    </div>
+</body>
+</html>
+<script>
+    //设置异步函数的时限,如果函数没有在指定的毫秒内调用它的回调，它将以超时错误被调用。
+    function fn(n, cb){
+        setTimeout(function(){
+            console.log("aaa");
+            cb(null, n);
+        }, 500);
+    }
+
+    function fn2(n, m, cb){
+        setTimeout(function(){
+            console.log("aaa");
+            cb("err", n + m);
+        }, 200);
+    }
+
+    //设置要执行的函数并设置最长时限
+    var test1 = async.timeout(fn, 800);
+    var test2 = async.timeout(fn, 300);
+    var test3 = async.timeout(fn2, 300);
+
+    //执行
+    //1.在设置的时限内触发了回调（此函数是按照fn的所需参数进行传参的）
+    test1(800, function(err, res){
+        console.log(err); // null
+        console.log(res); // 800
+    });
+
+    //2.没有在设置的时限内触发回调（此函数是按照fn的所需参数进行传参的）
+    test2(300, function(err, res){
+        console.log(err); // Error: Callback function "fn" timed out.  at e (async.js:23)
+        console.log(res); // undefined
+    });
+
+    //3.在设置的时限内触发了回调并遇err（此函数是按照fn2的所需参数进行传参的）
+    test3(10, 20, function(err, res){
+        console.log(err); // err
+        console.log(res); // 30
+    });
+
+</script>

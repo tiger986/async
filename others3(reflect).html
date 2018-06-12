@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        reflect (遇到error继续执行)
+    </div>
+</body>
+</html>
+<script>
+    //parallel并行执行，如果某个函数出错，则立刻将err和已经执行完的函数的结果值传给parallel最终的callback。未执行完的函数的值不会传到最终数据，但在err前申明的要占个位置。
+    /*async.parallel([
+        function(callback) {
+            setTimeout(function(){
+                console.log("aaa");
+                callback(null, 'one');
+            }, 300);
+        },
+        function(callback) {
+            setTimeout(function(){
+                console.log("bbb");
+                callback("err", 'two');
+            }, 100);
+        },
+        function(callback) {
+            setTimeout(function(){
+                console.log("ccc");
+                callback(null, 'three');
+            }, 500);
+        }],
+        function(err, results) {
+            console.log(err); //err
+            console.log(results); //[ , "two"] (res为数组)(在err前申明的要占个位置,其后申明的忽略)
+            //（传给最终callback的数组中的数据按照其所在函数声明的顺序排列，而不是执行完成的顺序。）
+        }
+    );*/
+    //log: bbb, err, ["one", "two"], aaa, ccc
+
+    //1.reflect正常执行后res数组的元素以对象的形式展现([{value: "one"}, {value: "two"}, {value: "three"}])
+    /*async.parallel([
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("aaa");
+                callback(null, 'one');
+            }, 300);
+        }),
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("bbb");
+                callback(null, 'two');
+            }, 100);
+        }),
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("ccc");
+                callback(null, 'three');
+            }, 500);
+        })],
+        function(err, results) {
+            console.log(err); //null
+            console.log(results); //[{value: "one"}, {value: "two"}, {value: "three"}]
+        }
+    );*/
+    //log: bbb, aaa, ccc, null, [{value: "one"}, {value: "two"}, {value: "three"}]
+
+    //2.若遇到错误，则会继续往下执行，回调中的err为null,但res数组中对应的元素为{error: "errrrr"}
+    async.parallel([ //注：不仅仅可以用于parallel中
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("aaa");
+                callback(null, 'one');
+            }, 300);
+        }),
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("bbb");
+                callback("errrrr", 'two');
+            }, 100);
+        }),
+        async.reflect(function(callback) {
+            setTimeout(function(){
+                console.log("ccc");
+                callback(null, 'three');
+            }, 500);
+        })],
+        function(err, results) {
+            console.log(err); //null
+            console.log(results); //[{value: "one"}, {error: "errrrr"}, {value: "three"}]
+        }
+    );
+    //log: bbb, aaa, ccc, null, [{value: "one"}, {error: "errrrr"}, {value: "three"}]
+
+
+
+
+
+</script>

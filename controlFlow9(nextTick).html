@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        nextTick(callback) （在nodejs与浏览器两边行为一致）
+    </div>
+</body>
+</html>
+<script>
+    /*nextTick的作用与nodejs的nextTick一样，都是把某个函数调用放在队列的尾部。但在浏览器端，只能使用setTimeout(callback,0)，
+    但这个方法有时候会让其它高优先级的任务插到前面去。所以提供了这个nextTick，让同样的代码在服务器端和浏览器端表现一致。*/
+
+    var arr = []; //第1个执行
+
+    async.nextTick(function(){ //第3个执行
+        arr.push(222);
+    });
+
+    async.nextTick(function(){ //第4个执行
+        console.log(arr);
+    });
+
+    arr.push(111); //第2个执行
+
+    async.nextTick(function(){ //第5个执行
+        console.log(arr);
+    });
+
+</script>

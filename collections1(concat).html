@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        concat(arr, fn, callback)（合并多个异步操作的结果合并为一个数组）
+    </div>
+</body>
+</html>
+<script>
+    //将合并多个异步操作的结果合并为一个数组。
+
+    var obj = {
+        a: [1, 2, 3],
+        b: [4, 5],
+        c: 6
+    };
+    var arr = [
+        {name: "a", time: 300},
+        {name: "b", time: 100},
+        {name: "c", time: 200}
+    ];
+
+    //1.以#并行#方式对集合中各元素进行异步操作，然后把得到的结果合并为一个数组，传给最后的callback。
+    async.concat(arr, function(key, callback){
+        setTimeout(function(){
+            callback(null, obj[key.name]);
+        }, key.time);
+    }, function(err, results){
+        console.log(err); //null
+        console.log(results); //[4, 5, 6, 1, 2, 3]
+    });
+
+    //2.如果中途出错，则把错误以及已经完成的操作的结果交给最后callback(出现错误处属未完成)。未执行完的则忽略
+    async.concat(arr, function(key, cb){
+        setTimeout(function(){
+            if(key.name == "c"){
+                cb("err");
+            }else{
+                cb(null, obj[key.name]);
+            }
+        }, key.time);
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //[4, 5]
+    });
+
+    //注：上面两个async.concat()中第2个首先完成（因为在key.name == "c"时出错导致完成）
+
+    //1.以#串行#方式对集合中各元素进行异步操作，，一个完成后才对下一个进行操作，然后把得到的结果合并为一个数组，传给最后的callback
+    async.concatSeries(arr, function(key, cb){
+        setTimeout(function(){
+            cb(null, obj[key.name])
+        }, key.time);
+    }, function(err, res){
+        console.log(res); //[1, 2, 3, 4, 5, 6]
+    });
+
+</script>

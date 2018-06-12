@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        parallelLimit(tasks, num, cb)（多个函数并行执行并限制同时执行的最大数量）
+    </div>
+</body>
+</html>
+<script>
+    //parallelLimit 与 parallel 最大的不同就是限制最大同时执行的数量
+
+    //限制2个同事执行，即每次只同时执行2个，以此下去直到执行完所有函数
+    async.parallelLimit([
+        function(cb){
+            setTimeout(function(){
+                cb(null, 111);
+            }, 3000);
+        },
+        function(cb){
+            setTimeout(function(){
+                cb(null, 222);
+            }, 1000);
+        },
+        function(cb){
+            setTimeout(function(){
+                cb(null, 333);
+            }, 2000);
+        }
+    ], 2, function(err, res){
+        console.log(res); //[111, 222, 333] 耗时3000 + 2000
+    });
+
+</script>

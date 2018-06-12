@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        reduce 串行累加集合数据
+    </div>
+</body>
+</html>
+<script>
+    //逐渐累加，返回最后累加的结果，Reduce可以让我们给定一个初始值，用它与集合中的每一个元素做运算，最后得到一个值。
+
+    var arr = [{name: 1, time: 300},
+        {name: 2, time: 200},
+        {name: 3, time: 500},
+        {name: 4, time: 100}];
+
+    //1.只支持series模式，不支持并行
+    /*async.reduce(arr, 10, function(memo, item, cb){ //10就是memo
+        setTimeout(function(){
+            console.log(item.name); //1, 2, 3, 4
+            console.log(memo); //10, 11, 13, 16
+            cb(null, memo + item.name);
+        }, item.time)
+    }, function(err, res){
+        console.log(res); //20
+    });*/
+    //log: 1, 10, 2, 13, 3, 16, 20
+
+    //2.遇到err也会执行完
+    async.reduce(arr, 10, function(memo, item, cb){ //10就是memo
+        setTimeout(function(){
+            console.log(item.name); //1, 2, 3, 4
+            console.log(memo); //10, 11, 13, 16
+            if(item.name > 3){
+                cb("err", memo + item.name);
+            }else{
+                cb(null, memo + item.name);
+            }
+        }, item.time)
+    }, function(err, res){
+        console.log(err); //err
+        console.log(res); //20
+    });
+    //log: 1, 10, 2, 13, 3, 16, err, 20
+
+    //3.reduce从左向右来遍历元素，如果想从右向左，可使用reduceRight
+
+</script>

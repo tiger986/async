@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box{
+            width: 600px;
+            font-size: 18px;
+            margin: 200px auto 0;
+        }
+    </style>
+    <script type="text/javascript" src="async.js"></script>
+</head>
+<body>
+    <div class="box">
+        doUntil(fn, test, callback) （后验证until循环）
+    </div>
+</body>
+</html>
+<script>
+    ////doUntil与doWhilst正好相反，当test为false时循环，为true时跳出。其它特性一致。
+    var n = 1;
+    async.doUntil(
+        function(cb){
+            n++;
+            setTimeout(function(){
+                console.log(n); //2
+                cb(null, n);
+            }, 1000);
+        },
+        function(){
+            return n < 5;
+        },
+        function(err, res){
+            console.log(err); //null
+            console.log(res); //2
+        }
+    );
+
+</script>
